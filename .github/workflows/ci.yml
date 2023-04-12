@@ -71,10 +71,7 @@ jobs:
           status=0
           while read -r features; do
             echo "::group::$features"
-            cargo check --package libp2p --features="$features"
-            if [ $? -ne 0 ]; then
-              status=1
-            fi
+            cargo check --package libp2p --features="$features" || status=1
             echo "::endgroup::"
           done <<< $(jq -r '.[]' <<< "$FEATURES")
           exit $status
@@ -97,10 +94,7 @@ jobs:
             rustup default $version
             (
               cargo custom-clippy
-            )
-            if [ $? -ne 0 ]; then
-              status=1
-            fi
+            ) || status=1
             echo "::endgroup::"
           done <<< $(jq -r '.[]' <<< "$TOOLCHAINS")
           exit $status

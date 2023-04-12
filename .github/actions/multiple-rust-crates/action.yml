@@ -18,17 +18,14 @@ runs:
         status=0
         crates=$(cargo metadata --format-version=1 --no-deps | jq -c '.packages | .[] | select(.publish == null) | .name' | jq -s '.' | jq -c '.')
         while read -r crate; do
-          cargo metadata --format-version=1 --no-deps | jq -r '.packages[] | select(.name == env.crate) | .rust_version'
+          cargo metadata --format-version=1 --no-deps
           version=$(cargo metadata --format-version=1 --no-deps | jq -r '.packages[] | select(.name == env.crate) | .rust_version')
           echo "::group::$crate"
           export crate
           export version
           (
             ${{ inputs.run }}
-          )
-          if [ $? -ne 0 ]; then
-            status=1
-          fi
+          ) || status=1
           echo "::endgroup::"
         done <<< $(jq -r '.[]' <<< "$crates")
         exit $status
