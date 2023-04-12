@@ -17,7 +17,7 @@ runs:
       run: |
         status=0
         crates=$(cargo metadata --format-version=1 --no-deps | jq -c '.packages | .[] | select(.publish == null) | .name' | jq -s '.' | jq -c '.')
-        for crate in $crates; do
+        while read -r crate; do
           version=$(cargo metadata --format-version=1 --no-deps | jq -r '.packages[] | select(.name == "$crate") | .rust_version')
           echo "::group::$crate"
           export crate
@@ -29,5 +29,5 @@ runs:
             status=1
           fi
           echo "::endgroup::"
-        done
+        done <<< $(jq -r '.[]' <<< "$crates")
         exit $status
