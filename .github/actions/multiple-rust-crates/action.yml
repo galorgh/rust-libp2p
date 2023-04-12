@@ -1,0 +1,31 @@
+name: Multiple Go Modules
+description: Run command in multiple repos
+
+inputs:
+  run:
+    description: Command(s) to run
+    required: true
+  working-directory:
+    description: Working directory to run the command(s) in
+    required: false
+
+runs:
+  using: composite
+  steps:
+    - shell: bash
+      working-directory: ${{ inputs.working-directory }}
+      run: |
+        status=0
+        crates=$(cargo metadata --format-version=1 --no-deps | jq -c '.packages | .[] | select(.publish == null) | .name' | jq -s '.' | jq -c '.')
+        for crate in $crates; do
+          version=$(cargo metadata --format-version=1 --no-deps | jq -r '.packages[] | select(.name == "$crate") | .rust_version')
+          echo "::group::$dir"
+          (
+            ${{ inputs.run }}
+          )
+          if [ $? -ne 0 ]; then
+            status=1
+          fi
+          echo "::endgroup::"
+        done
+        exit $status
