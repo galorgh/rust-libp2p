@@ -18,6 +18,7 @@ runs:
         status=0
         crates=$(cargo metadata --format-version=1 --no-deps | jq -c '.packages | .[] | select(.publish == null) | .name' | jq -s '.' | jq -c '.')
         while read -r crate; do
+          cargo metadata --format-version=1 --no-deps | jq -r '.packages[] | select(.name == env.crate) | .rust_version'
           version=$(cargo metadata --format-version=1 --no-deps | jq -r '.packages[] | select(.name == env.crate) | .rust_version')
           echo "::group::$crate"
           export crate
